@@ -8,27 +8,26 @@
 import numpy as np
 
 
-def eps2p(epsilon, n=2):
+def eps2p(epsilon, n=2):     #用来计算概率p的函数#  
     return np.e ** epsilon / (np.e ** epsilon + n - 1)
 
 
-def discretization(value, lower=0, upper=1):
+def discretization(value, lower=0, upper=1):   #进行随机扰动（RR）需要的数据是离散型，如果数据是连续型则需要进行离散化操作。离1近就赋值1，反之为0。#
     if value > upper or value < lower:
         raise Exception("the range of value is not valid in Function @Func: discretization")
 
     p = (value - lower) / (upper - lower)
-    rnd = np.random.random()
-    return upper if rnd < p else lower
+    return upper if 0.5 < p else lower         #p>0.5则value>0.5故value更接近upper,反之更接近lower#
 
 
-def perturbation(value, perturbed_value, epsilon):
-    rnd = np.random.random()
+def perturbation(value, perturbed_value, epsilon):  #扰动#
+    rnd = np.random.random()                   #0-1随机取一个浮点数#
     if rnd < eps2p(epsilon):
         return value
     return perturbed_value
 
 
-def k_random_response(value, values, epsilon):
+def k_random_response(value, values, epsilon): #value:项目，values:所有项目集合#
     """
     the k-random response
     :param value: current value
@@ -36,15 +35,15 @@ def k_random_response(value, values, epsilon):
     :param epsilon: privacy budget
     :return:
     """
-    if not isinstance(values, list):
-        raise Exception("The values should be list")
+    if not isinstance(values, list):           #如果values不是集合类型#
+        raise Exception("The values should be list") #提示values应当是集合类型并终止，一旦执行了raise语句，raise后面的语句将不能执行#
     if value not in values:
         raise Exception("Errors in k-random response")
-    p = np.e ** epsilon / (np.e ** epsilon + len(values) - 1)
-    if np.random.random() < p:
-        return value
-    values.remove(value)
-    return values[np.random.randint(low=0, high=len(values))]
+    p = np.e ** epsilon / (np.e ** epsilon + len(values) - 1)  #求概率p#
+    if 0.5 < p:
+        return value      #p>0.5时返回的扰动值是value本身也就是说value经过扰动后还是value本身#
+    values.remove(value)  #从values集中将value移除#
+    return values[np.random.randint(low=0, high=len(values))]   #p<0.5时返回的扰动值是除了value的项目集合中的其他的一个随机项#
 
 
 def k_random_response_new(item, k, epsilon):
